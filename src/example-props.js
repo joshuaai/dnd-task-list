@@ -1,4 +1,4 @@
-const result = {
+const dndResult = {
   draggableId: 'task-1',
   type: 'TYPE',
   reason: 'DROP',
@@ -10,4 +10,14 @@ const result = {
     droppableId: 'column-1',
     index: 1
   }
+}
+
+const draggableSnapshot = {
+  isDragging: true,
+  draggingOver: 'column-1'
+}
+
+const droppableSnapshot = {
+  isDraggingOver: true,
+  draggingOverWith: 'task-1'
 }
