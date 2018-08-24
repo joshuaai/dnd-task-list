@@ -1,9 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import '@atlaskit/css-reset'
+import styled from 'styled-components'
 import { DragDropContext } from 'react-beautiful-dnd'
 import initialData from './initial-data'
 import Column from './column'
+
+const Container = styled.div`
+  display: flex;
+`
 
 class App extends React.Component {
   state = initialData
@@ -34,19 +39,44 @@ class App extends React.Component {
       return
     }
 
-    const column = this.state.columns[source.droppableId]
-    const newTaskIds = Array.from(column.taskIds)
-    // move the task id from its old index to its new index
-    newTaskIds.splice(source.index, 1) // remove the id
-    newTaskIds.splice(destination.index, 0, draggableId) // re-add it to new position
+    const startColumn = this.state.columns[source.droppableId]
+    const finishColumn = this.state.columns[destination.droppableId]
 
-    const newColumn = { ...column, taskIds: newTaskIds }
+    if (startColumn === finishColumn) {
+      const newTaskIds = Array.from(startColumn.taskIds)
+      // move the task id from its old index to its new index
+      newTaskIds.splice(source.index, 1) // remove the id
+      newTaskIds.splice(destination.index, 0, draggableId) // re-add it to new position
+
+      const newColumn = { ...startColumn, taskIds: newTaskIds }
+
+      const newState = {
+        ...this.state,
+        columns: {
+          ...this.state.columns,
+          [newColumn.id]: newColumn
+        }
+      }
+
+      this.setState(newState)
+      return
+    }
+
+    // Moving from one list to another
+    const startTaskIds = Array.from(startColumn.taskIds)
+    startTaskIds.splice(source.index, 1)
+    const newStartColumn = { ...startColumn, taskIds: startTaskIds }
+
+    const finishTaskIds = Array.from(finishColumn.taskIds)
+    finishTaskIds.splice(destination.index, 0, draggableId)
+    const newFinishColumn = { ...finishColumn, taskIds: finishTaskIds }
 
     const newState = {
       ...this.state,
       columns: {
         ...this.state.columns,
-        [newColumn.id]: newColumn
+        [newStartColumn.id]: newStartColumn,
+        [newFinishColumn.id]: newFinishColumn
       }
     }
 
@@ -56,11 +86,15 @@ class App extends React.Component {
   render() {
     return (
       <DragDropContext onDragEnd={this.onDragEnd}>
-        {this.state.columnOrder.map(columdId => {
-          const column = this.state.columns[columdId]
-          const tasks = column.taskIds.map(tasksId => this.state.tasks[tasksId])
-          return <Column key={column.id} column={column} tasks={tasks} />
-        })}
+        <Container>
+          {this.state.columnOrder.map(columdId => {
+            const column = this.state.columns[columdId]
+            const tasks = column.taskIds.map(
+              tasksId => this.state.tasks[tasksId]
+            )
+            return <Column key={column.id} column={column} tasks={tasks} />
+          })}
+        </Container>
       </DragDropContext>
     )
   }
